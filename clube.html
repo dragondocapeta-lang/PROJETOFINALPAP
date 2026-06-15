@@ -76,7 +76,7 @@
         </div>
       </div>
 
-      <div id="clube-page" class="grid gap-8 lg:grid-cols-[1.2fr_0.8fr]">
+      <div id="clube-page" class="grid gap-8 lg:grid-cols-[1.05fr_0.95fr]">
         <div class="space-y-8">
           <section class="info-block p-8 relative overflow-hidden">
             <div class="card-shine"></div>
@@ -112,22 +112,12 @@
             <h3 class="mb-4">História do clube</h3>
             <p id="clube-description" class="text-white/60 leading-[1.8]"></p>
           </section>
-
-          <section class="info-block p-8">
-            <h3 class="mb-4">Artigos populares</h3>
-            <div id="popular-articles" class="grid gap-4">
-              <div class="article-card p-5">
-                <p class="text-white/70">Nenhum artigo disponível.</p>
-                <p class="text-white/40 text-[13px] mt-2">Adiciona uma tabela de artigos na base de dados para mostrar conteúdos reais.</p>
-              </div>
-            </div>
-          </section>
         </div>
 
         <aside class="space-y-6">
           <section class="info-block p-8">
             <h3 class="mb-4">Estádio</h3>
-            <img id="clube-stadium-image" src="" alt="Estádio" class="w-full rounded-[24px] object-cover max-h-[260px]" />
+            <img id="clube-stadium-image" src="" alt="Estádio" class="w-full rounded-[24px] object-cover max-h-[360px]" />
             <p id="clube-stadium-name-label" class="mt-3 text-white/40 text-[13px] font-mono tracking-[1px] text-center"></p>
           </section>
 
@@ -135,16 +125,15 @@
             <h3 class="mb-4">Cores</h3>
             <p id="clube-colors" class="text-white/60"></p>
           </section>
+
+          <section class="info-block p-8 bg-[#111218] border border-white/[0.08] shadow-[0_20px_60px_rgba(0,0,0,0.2)]">
+            <h3 class="mb-6" style="font-size:1rem;letter-spacing:.12em;text-transform:uppercase;color:#b4ff00">Camisolas</h3>
+            <div id="camisolas-container" class="grid gap-4 sm:grid-cols-2">
+              <p class="text-white/40 text-sm col-span-2">A carregar camisolas...</p>
+            </div>
+          </section>
         </aside>
       </div>
-
-      <!-- CAMISOLAS -->
-      <section class="info-block p-8 mt-8 max-w-[980px]">
-        <h3 class="mb-6" style="font-size:1rem;letter-spacing:.12em;text-transform:uppercase;color:#b4ff00">Camisolas</h3>
-        <div id="camisolas-container" class="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
-          <p class="text-white/40 text-sm col-span-3">A carregar camisolas...</p>
-        </div>
-      </section>
     </div>
   </section>
 
@@ -197,20 +186,84 @@
         </div>`
     }
 
+    // ── Constrói o path da foto da camisola a partir do nome do clube, tipo e época ──
+    // Convenção: imagens/camisolas/Camisola_NomeDoClube_Tipo_Epoca.jpg
+    function camisolaPath(nomeClube, tipo, epoca) {
+      if (!nomeClube || !tipo || !epoca) return null
+      const normalizado = nomeClube
+        .normalize('NFD').replace(/[\u0300-\u036f]/g, '') // remove acentos
+        .trim()
+        .replace(/\s+/g, '_')                             // espaços → _
+        .replace(/[^a-zA-Z0-9_\-]/g, '')                 // remove caracteres inválidos
+      const tipoNormalizado = tipo
+        .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+        .trim()
+        .replace(/\s+/g, '_')
+        .replace(/[^a-zA-Z0-9_\-]/g, '')
+      const epocaNormalizada = epoca
+        .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+        .trim()
+        .replace(/\s+/g, '_')
+        .replace(/[^a-zA-Z0-9_\-]/g, '')
+      return `imagens/camisolas/Camisola_${normalizado}_${tipoNormalizado}_${epocaNormalizada}.jpg`
+    }
+
+    // ── Testa se uma imagem existe ──
+    const testarImagem = (src) => new Promise(resolve => {
+      const img = new Image()
+      img.onload = () => resolve(src)
+      img.onerror = () => resolve(null)
+      img.src = src
+    })
+
+    // ── Busca camisolas locais a partir do manifesto JSON ──
+    async function getCamisolasLocal(nomeClube) {
+      if (!nomeClube) return []
+      try {
+        const response = await fetch('./imagens/camisolas/camisolas-local.json', { cache: 'no-store' })
+        if (!response.ok) return []
+        const data = await response.json()
+        return data.filter(item => item.clube?.toLowerCase() === nomeClube.toLowerCase())
+      } catch (error) {
+        return []
+      }
+    }
+
     // ── Carrega e renderiza as camisolas do clube ──
-    async function carregarCamisolas(clubeId) {
+    async function carregarCamisolas(clubeId, nomeClube) {
       const container = document.getElementById('camisolas-container')
       if (!container) return
       try {
-        const camisolas = await getCamisolas(clubeId)
+        const camisolasDB = await getCamisolas(clubeId).catch(() => [])
+        const camisolasLocal = await getCamisolasLocal(nomeClube)
+        const seenKeys = new Set()
+        const camisolas = [...camisolasDB, ...camisolasLocal].filter((c) => {
+          const key = `${c.tipo || ''}||${c.epoca || ''}||${c.nome || ''}`
+          if (seenKeys.has(key)) return false
+          seenKeys.add(key)
+          return true
+        })
+
         if (!camisolas || camisolas.length === 0) {
           container.innerHTML = '<p class="text-white/30 text-sm col-span-3">Sem camisolas disponíveis para este clube.</p>'
           return
         }
-        container.innerHTML = camisolas.map(c => `
+
+        // Processa todas as camisolas e testa imagens locais em paralelo
+        const camisolasProcessadas = await Promise.all(
+          camisolas.map(async (c) => {
+            const pathLocal = camisolaPath(nomeClube, c.tipo, c.epoca)
+            const srcFinal = await testarImagem(pathLocal)
+              ?? (c.imagem_url || null)
+              ?? `https://via.placeholder.com/600x800?text=${encodeURIComponent(c.nome || 'Camisola')}`
+            return { ...c, imagem_final: srcFinal }
+          })
+        )
+
+        container.innerHTML = camisolasProcessadas.map(c => `
           <div class="camisola-card">
             <div class="camisola-img-wrap">
-              <img src="${c.imagem_url || ''}" alt="${c.nome || 'Camisola'}" loading="lazy"
+              <img src="${c.imagem_final}" alt="${c.nome || 'Camisola'}" loading="lazy"
                 onerror="this.parentElement.innerHTML='<span class=\\'camisola-sem-img\\'>Sem imagem</span>'" />
             </div>
             <div class="camisola-info">
@@ -256,13 +309,6 @@
         const pathLocal = estadioPath(clube.nome)
 
         // Tenta carregar imagem local; se falhar usa a da BD ou placeholder
-        const testarImagem = (src) => new Promise(resolve => {
-          const img = new Image()
-          img.onload = () => resolve(src)
-          img.onerror = () => resolve(null)
-          img.src = src
-        })
-
         const srcFinal = await testarImagem(pathLocal)
           ?? (clube.estadio_imagem || null)
           ?? `https://via.placeholder.com/800x500?text=${encodeURIComponent(clube.estadio_nome || 'Estádio')}`
@@ -276,7 +322,7 @@
         if (backToLeague) backToLeague.href = ligaUrl
 
         // Carrega camisolas
-        await carregarCamisolas(parseInt(clubeId))
+        await carregarCamisolas(parseInt(clubeId), clube.nome)
 
       } catch (error) {
         console.error('Erro carregando clube:', error)
