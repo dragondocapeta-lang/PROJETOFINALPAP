@@ -28,10 +28,30 @@ html { scroll-behavior: smooth; }
 
 body {
   font-family: var(--font-body);
-  background: var(--bg);
+  background: linear-gradient(180deg, rgba(6,6,8,0.55), rgba(6,6,8,0.85)), url('imagens/bg/background.png') center/cover fixed no-repeat;
+  background-color: var(--bg);
   color: var(--text);
   overflow-x: hidden;
   line-height: 1.6;
+}
+
+/* Remove site background when page opts out (e.g. auth page) */
+.no-site-bg {
+  background-image: none !important;
+  background: var(--bg) !important;
+  background-color: var(--bg) !important;
+}
+
+/* Esconder painel visual na página de autenticação e expandir formulário */
+body.no-site-bg .auth-visual {
+  display: none !important;
+}
+
+/* Quando o painel esquerdo está escondido, faz o painel do formulário ocupar toda a largura */
+body.no-site-bg .flex.min-h-screen > div:last-child {
+  width: 100% !important;
+  max-width: none !important;
+  flex: 1 1 100% !important;
 }
 
 /* ===========================

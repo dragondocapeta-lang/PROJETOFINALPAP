@@ -62,8 +62,8 @@
     </div>
   </header>
 
-  <section class="pt-[160px] pb-[80px] px-[80px] relative z-[1]">
-    <div class="flex flex-col gap-6 max-w-[980px]">
+  <section class="pt-[160px] pb-[80px] px-[40px] lg:px-[60px] relative z-[1]">
+    <div class="flex flex-col gap-6 max-w-[1300px] mx-auto">
       <div class="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
         <div>
           <p class="font-mono text-[11px] tracking-[4px] text-acid mb-4">CLUBE · DETALHES · HISTÓRIA</p>
@@ -76,11 +76,19 @@
         </div>
       </div>
 
-      <div id="clube-page" class="grid gap-8 lg:grid-cols-[1fr_1fr]">
-        <!-- COLUNA ESQUERDA: Escudo + Info Básica -->
-        <div class="space-y-6">
-          <!-- Card Principal: Escudo + Nome + Liga -->
-          <section class="info-block p-8 relative overflow-hidden">
+      <div id="clube-page" class="grid gap-8 lg:grid-cols-[1fr_1.1fr_1fr]">
+        <!-- COLUNA ESQUERDA: Estádio -->
+        <aside class="space-y-6">
+          <section class="info-block p-8 overflow-hidden">
+            <h3 class="mb-6 font-display text-[20px] tracking-[2px]" style="color:#b4ff00">Estádio</h3>
+            <img id="clube-stadium-image" src="" alt="Estádio" class="w-full rounded-[20px] object-cover max-h-[420px] border border-white/[0.1]" />
+            <p id="clube-stadium-name-label" class="mt-4 text-white/50 text-[12px] font-mono tracking-[1px] text-center uppercase"></p>
+          </section>
+        </aside>
+
+        <!-- COLUNA DO MEIO: Informação do Clube -->
+        <div class="space-y-6 flex flex-col items-center text-center">
+          <section class="info-block p-8 relative overflow-hidden w-full">
             <div class="card-shine"></div>
             <div class="flex flex-col items-center text-center">
               <img id="clube-escudo" src="" alt="Escudo do clube" class="w-[180px] h-[180px] rounded-[24px] border-2 border-acid/20 bg-black/40 mb-6" />
@@ -90,8 +98,7 @@
             </div>
           </section>
 
-          <!-- Grid: Fundado, Local, Estádio -->
-          <div class="grid grid-cols-3 gap-4">
+          <div class="grid grid-cols-1 lg:grid-cols-3 gap-4 w-full">
             <div class="info-block p-5 text-center">
               <p class="font-mono text-[10px] tracking-[2px] text-acid uppercase mb-2">Fundado</p>
               <p id="clube-year" class="font-display text-[24px] leading-tight"></p>
@@ -106,31 +113,21 @@
             </div>
           </div>
 
-          <!-- História do Clube -->
-          <section class="info-block p-8">
+          <section class="info-block p-8 w-full">
             <h3 class="mb-6 font-display text-[20px] tracking-[2px]" style="color:#b4ff00">Histórico</h3>
             <p id="clube-description" class="text-white/60 leading-[1.8] text-[14px]"></p>
           </section>
-        </div>
 
-        <!-- COLUNA DIREITA: Estádio + Cores + Camisolas -->
-        <aside class="space-y-6">
-          <!-- Estádio -->
-          <section class="info-block p-8 overflow-hidden">
-            <h3 class="mb-6 font-display text-[20px] tracking-[2px]" style="color:#b4ff00">Estádio</h3>
-            <img id="clube-stadium-image" src="" alt="Estádio" class="w-full rounded-[20px] object-cover max-h-[320px] border border-white/[0.1]" />
-            <p id="clube-stadium-name-label" class="mt-4 text-white/50 text-[12px] font-mono tracking-[1px] text-center uppercase"></p>
-          </section>
-
-          <!-- Cores -->
-          <section class="info-block p-8">
+          <section class="info-block p-8 w-full">
             <h3 class="mb-6 font-display text-[20px] tracking-[2px]" style="color:#b4ff00">Cores</h3>
-            <div class="flex items-center gap-4">
+            <div class="flex items-center justify-center gap-4">
               <p id="clube-colors" class="text-white/70 text-[14px] leading-relaxed"></p>
             </div>
           </section>
+        </div>
 
-          <!-- Camisolas -->
+        <!-- COLUNA DIREITA: Camisolas -->
+        <aside class="space-y-6">
           <section class="info-block p-8" style="background: linear-gradient(135deg, rgba(180,255,0,0.03) 0%, rgba(255,255,255,0.01) 100%); border: 1.5px solid rgba(180,255,0,0.15)">
             <h3 class="mb-6 font-display text-[20px] tracking-[2px]" style="color:#b4ff00">Camisolas</h3>
             <div id="camisolas-container" class="grid gap-4 grid-cols-2">
